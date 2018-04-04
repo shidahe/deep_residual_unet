@@ -1,8 +1,54 @@
+import yaml
+
+from keras.optimizers import *
 from keras.preprocessing.image import *
+
 from xml.dom import minidom as xml
 
-
 smooth = 1.
+
+
+def configure_augmentation(cfg):
+    """
+    return
+    :param cfg: augmentation fields of configuration
+    :return: ImageDataGenerator
+    """
+    return ImageDataGenerator(featurewise_center=cfg.featurewise_center,
+                              samplewise_center=cfg.samplewise_center,
+                              featurewise_std_normalization=cfg.featurewise_std_normalization,
+                              samplewise_std_normalization=cfg.samplewise_std_normalization,
+                              zca_whitening=cfg.zca_whitening,
+                              zca_epsilon=cfg.zca_epsilon,
+                              rotation_range=cfg.rotation_range,
+                              width_shift_range=cfg.width_shift_range,
+                              height_shift_range=cfg.height_shift_range,
+                              shear_range=cfg.shear_range,
+                              zoom_range=cfg.zoom_range,
+                              channel_shift_range=cfg.channel_shift_range,
+                              fill_mode=cfg.fill_mode,
+                              cval=cfg.cval,
+                              horizontal_flip=cfg.horizontal_flip,
+                              vertical_flip=cfg.vertical_flip,
+                              rescale=cfg.rescale)
+
+
+def configure_optimizer(cfg):
+    keras_optimizers = [item.__name__ for item in Optimizer.__subclasses__()]
+    if cfg.name in keras_optimizers:
+        try:
+            return eval("{}(**{})".format(cfg.name, cfg.parameters))
+        except TypeError as ex:
+            print("Error during configuring optimizer: {}".format(ex))
+            exit(-1)
+    else:
+        print("No such optimizer, please refer to keras docs: http://keras.io/")
+        exit(-1)
+
+
+def dump_cfg(filepath, cfg):
+    with open(filepath, "w+") as f:
+        yaml.dump(dict(cfg), f, default_flow_style=False)
 
 
 def dice_coef(y_true, y_pred):

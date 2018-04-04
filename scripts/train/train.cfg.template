@@ -1,0 +1,35 @@
+model_name: "res_unet"
+input_size: [256, 256, 1]
+dataset: "dataset_name"
+batch_size: 1
+num_epochs: 1
+augmentation:
+    {
+        featurewise_center: false,
+        samplewise_center: false,
+        featurewise_std_normalization: false,
+        samplewise_std_normalization: false,
+        zca_epsilon: 1e-06,
+        zca_whitening: false,
+        rotation_range: 0.0,
+        width_shift_range: 0.0,
+        height_shift_range: 0.0,
+        shear_range: 0.0,
+        zoom_range: 0.0,
+        channel_shift_range: 0.0,
+        fill_mode: "nearest",
+        cval: 0.0,
+        horizontal_flip: false,
+        vertical_flip: false,
+        rescale: None
+    }
+optimizer:
+    {
+        name: "SGD",
+        parameters: {
+            lr: 0.01,
+            momentum: 0.0,
+            decay: 0.0,
+            nesterov: False
+        }
+    }

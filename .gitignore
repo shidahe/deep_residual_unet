@@ -1,0 +1,15 @@
+# folders
+.idea
+.git
+./models/
+./dataset/
+
+
+# python files
+
+*.pyc
+
+# configure files
+
+*.cfg
+
