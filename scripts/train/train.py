@@ -1,3 +1,5 @@
+import _init_path_
+
 
 from datetime import datetime
 from easydict import EasyDict
@@ -6,8 +8,9 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 
 # TODO: assign model import to overall approach
 
-from scripts.utils.models.res_unet import *
-from scripts.utils.utils import *
+
+from utils.models.res_unet import *
+from utils.utils import *
 
 
 def train():
@@ -42,8 +45,8 @@ def train():
     train_aug = configure_augmentation(cfg.augmentation)
     train_generator = configure_dataset(cfg.dataset, train_aug)
 
-    model.fit_generator(train_generator, steps_per_epoch=300,
-                        epochs=50,
+    model.fit_generator(train_generator, steps_per_epoch=cfg.steps_per_epoch,
+                        epochs=cfg.num_epochs,
                         callbacks=[tensorboard, model_checkpoint]
                         )
 

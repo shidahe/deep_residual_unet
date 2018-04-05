@@ -1,6 +1,7 @@
 # folders
 .idea
 .git
+__pycache__
 ./models/
 ./dataset/
 
@@ -16,4 +17,5 @@
 # specific shell scripts
 
 update_requirements.sh
+clean.sh
 

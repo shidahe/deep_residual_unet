@@ -1,5 +1,4 @@
 import json
-import os
 
 from keras.optimizers import *
 from keras.preprocessing.image import *
@@ -34,7 +33,7 @@ def prepare_points_xy(points_raw):
                 try:
                     type(j[key][0])
                 except:
-                    print j
+                    print(j)
 
                 if type(j[key][0]) == list:
                     for pp in j[key]:
@@ -48,9 +47,8 @@ def prepare_points_xy(points_raw):
 
 class LabelBoxXYIterator(Iterator):
 
-    def __init__(self, load_dir, image_data_generator=None,
+    def __init__(self, load_dir=None, image_data_generator=None,
                  image_shape=(300, 300),
-                 target_size=(300, 300),
                  color_mode='colorful',
                  interpolation='nearest',
                  class_mode='binary',
@@ -58,7 +56,6 @@ class LabelBoxXYIterator(Iterator):
                  seed=None,
                  batch_size=32,
                  ):
-
         for i in os.listdir(load_dir):
             if i.endswith('.json'):
                 self.file_name = i
@@ -68,13 +65,12 @@ class LabelBoxXYIterator(Iterator):
         with open(load_dir + '/' + self.file_name) as f:
             self.data = json.load(f)
 
-        path = load_dir + '/JPEG/'
+        path = load_dir + '/JPEGImages/'
         self.filenames = [path + i['External ID'] for i in self.data]
 
         self.points = prepare_points_xy([i['Label'] for i in self.data])
 
-        self.image_shape = image_shape
-        self.target_size = target_size
+        self.image_shape = tuple(image_shape)
         self.color_mode = color_mode
         self.interpolation = interpolation
         self.data_format = K.image_data_format()
@@ -161,13 +157,13 @@ class LabelBoxXYIterator(Iterator):
             fpath = self.filenames[j]
             img, original_shape = self.load_img(fpath,
                            grayscale=grayscale,
-                           target_size=self.target_size,
+                           target_size=self.image_shape,
                            interpolation=self.interpolation)
             original_shapes.append(original_shape)
             x = img_to_array(img, data_format=self.data_format)
-            if self.image_data_generator:
-                x = self.image_data_generator.random_transform(x)
-                x = self.image_data_generator.standardize(x)
+            # if self.image_data_generator:
+            #     x = self.image_data_generator.random_transform(x)
+            #     x = self.image_data_generator.standardize(x)
             batch_x[i] = x
         # optionally save augmented images to disk for debugging purposes
         if self.save_to_dir:
@@ -184,14 +180,13 @@ class LabelBoxXYIterator(Iterator):
 
         return batch_x, batch_y
 
-
     def build_mask(self, index_array, original_shapes):
         masks = [np.zeros(shape[::-1], dtype='float32') for shape in original_shapes]
         for k, ind in enumerate(index_array):
-            #TODO: hardcoded class name CORE
+            # TODO: hardcoded class name CORE
             for polygon in self.points[ind]['Core']:
                 x = polygon['x']
                 y = polygon['y']
-                #normalize
+                # normalize
                 cv2.fillPoly(masks[k], [np.array(list(zip(x, y)))], 1)
-        return np.array([cv2.resize(mask[::-1], self.target_size) for mask in masks])
+        return np.array([cv2.resize(mask[::-1], self.image_shape) for mask in masks])[:,:,:, None]

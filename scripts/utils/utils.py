@@ -1,3 +1,4 @@
+import importlib
 import yaml
 
 from keras.optimizers import *
@@ -49,21 +50,18 @@ def configure_dataset(cfg, augm):
 
     if cfg.iterator.name in keras_iterators:
         try:
-            return eval("{}(**{})".format(cfg.name, cfg.parameters))
+            return eval("{}(image_data_generator=augm, **{})".format(cfg.name, cfg.parameters))
         except TypeError as ex:
             print("Error during configuring optimizer: {}".format(ex))
-            exit(-1)
+            raise
     else:
         try:
-            iterator = __import__("scripts.utils.iterators.{}".format(cfg.iterator.name))
-            return eval("{}.{}(**{})".format(iterator, cfg.iterator.name, cfg.iterator.parameters))
+            iterator = importlib.import_module("utils.iterators.{}".format(cfg.iterator.name))
+            return eval("iterator.{}(image_data_generator=augm, **{})".format(cfg.iterator.name, cfg.iterator.parameters))
         except ImportError as ex:
             print("Unknown iterator module: {}".format(ex))
-            exit(-1)
+            raise
 
-    # return PASCALVOCIterator(directory=dataset_folder, target_file="train.txt",
-    #                          image_data_generator=augm, target_size=(input_shape[0], input_shape[1]),
-    #                          batch_size=batch_size, classes=classes)
 
 def dump_cfg(filepath, cfg):
     with open(filepath, "w+") as f:
