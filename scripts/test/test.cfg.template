@@ -12,10 +12,10 @@ dataset:
         iterator: {
             name: "LabelBoxXYIterator",
             parameters: {
-                load_dir: <path to folder with dataset>,
+                load_dir: '/home/vmiroshnychenko/Desktop/DenseUnet/deep_residual_unet/scripts/dataset/brewno',
                 batch_size: 1,
                 image_shape: [512, 512],
-                mode: 'train'
+                mode: 'test'
             }
         }
     }

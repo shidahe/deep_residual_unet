@@ -55,6 +55,7 @@ class LabelBoxXYIterator(Iterator):
                  shuffle=True,
                  seed=None,
                  batch_size=32,
+                 mode='train'
                  ):
         for i in os.listdir(load_dir):
             if i.endswith('.json'):
@@ -65,10 +66,17 @@ class LabelBoxXYIterator(Iterator):
         with open(load_dir + '/' + self.file_name) as f:
             self.data = json.load(f)
 
-        path = load_dir + '/JPEGImages/'
-        self.filenames = [path + i['External ID'] for i in self.data]
+        if mode == 'train':
+            mode_file_name = 'train.txt'
+        else:
+            mode_file_name = 'test.txt'
+        with open(os.path.join(load_dir, 'ImageSets', mode_file_name), 'r') as f:
+            mode_list = f.readlines()
 
-        self.points = prepare_points_xy([i['Label'] for i in self.data])
+        path = load_dir + '/JPEGImages/'
+        self.filenames = [path + i['External ID'] for i in self.data if i['External ID'] in mode_list]
+
+        self.points = prepare_points_xy([i['Label'] for i in self.data if i['External ID'] in mode_list])
 
         self.image_shape = tuple(image_shape)
         self.color_mode = color_mode
