@@ -1,6 +1,7 @@
 import _init_path_
 import yaml
 import os
+from time import time
 
 from datetime import datetime
 from easydict import EasyDict
@@ -13,9 +14,8 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 from utils.models.res_unet import *
 from utils.utils import *
 
-
 def test():
-    cfg = EasyDict(yaml.load(open('test.cfg')))
+    cfg = EasyDict(yaml.load(open('test.cfg.template')))
 
     # configure callbacks
 
@@ -35,10 +35,13 @@ def test():
     train_aug = configure_augmentation(cfg.augmentation)
     train_generator = configure_dataset(cfg.dataset, train_aug)
 
-
+    start = time()
     res = model.evaluate_generator(train_generator)
-    print(res)
-
+    finish = time()
+    print('dice loss:', res)
+    print('total time: ', finish - start)
+    print('test size:', len(train_generator.filenames))
+    print('seconds ped image:', (finish - start) / (len(train_generator.filenames)))
 if __name__ == "__main__":
     test()
 

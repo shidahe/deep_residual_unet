@@ -71,11 +71,10 @@ class LabelBoxXYIterator(Iterator):
         else:
             mode_file_name = 'test.txt'
         with open(os.path.join(load_dir, 'ImageSets', mode_file_name), 'r') as f:
-            mode_list = f.readlines()
+            mode_list = [i.replace('\n', '') for i in f.readlines()]
 
         path = load_dir + '/JPEGImages/'
         self.filenames = [path + i['External ID'] for i in self.data if i['External ID'] in mode_list]
-
         self.points = prepare_points_xy([i['Label'] for i in self.data if i['External ID'] in mode_list])
 
         self.image_shape = tuple(image_shape)
