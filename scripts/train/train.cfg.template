@@ -1,8 +1,24 @@
-model_name: "res_unet"
-input_size: [256, 256, 1]
-dataset: "dataset_name"
-batch_size: 1
-num_epochs: 1
+model:
+    {
+        name: "res_unet",
+        parameters: {
+            input_size: [512, 512, 3]
+        }
+    }
+
+dataset:
+    {
+        folder_name: "brewno",
+        iterator: {
+            name: "LabelBoxXYIterator",
+            parameters: {
+                load_dir: <path to folder with dataset>,
+                batch_size: 1,
+                image_shape: [512, 512]
+            }
+        }
+    }
+
 augmentation:
     {
         featurewise_center: false,
@@ -23,6 +39,9 @@ augmentation:
         vertical_flip: false,
         rescale: None
     }
+
+steps_per_epoch: 40
+
 optimizer:
     {
         name: "SGD",
@@ -33,3 +52,5 @@ optimizer:
             nesterov: False
         }
     }
+
+num_epochs: 1
