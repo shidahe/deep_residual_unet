@@ -58,8 +58,9 @@ def decoder(x, from_encoder):
     return main_path
 
 
-def build_res_unet(input_shape):
-    inputs = Input(shape=input_shape)
+def build(cfg):
+
+    inputs = Input(shape=cfg.input_size)
 
     to_decoder = encoder(inputs)
 

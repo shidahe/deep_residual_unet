@@ -13,3 +13,7 @@
 
 *.cfg
 
+# specific shell scripts
+
+update_requirements.sh
+
