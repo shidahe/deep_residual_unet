@@ -1,6 +1,7 @@
 model:
     {
         name: "res_unet",
+        nameh5: "keras.h5",
         parameters: {
             input_size: [512, 512, 3]
         }

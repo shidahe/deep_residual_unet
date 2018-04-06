@@ -3,7 +3,7 @@ import yaml
 
 from keras.optimizers import *
 from keras.preprocessing.image import *
-
+import keras
 smooth = 1.
 
 
@@ -57,7 +57,8 @@ def configure_dataset(cfg, augm):
     else:
         try:
             iterator = importlib.import_module("utils.iterators.{}".format(cfg.iterator.name))
-            return eval("iterator.{}(image_data_generator=augm, **{})".format(cfg.iterator.name, cfg.iterator.parameters))
+            return eval(
+                "iterator.{}(image_data_generator=augm, **{})".format(cfg.iterator.name, cfg.iterator.parameters))
         except ImportError as ex:
             print("Unknown iterator module: {}".format(ex))
             raise
@@ -77,5 +78,17 @@ def dice_coef(y_true, y_pred):
 
 def dice_coef_loss(y_true, y_pred):
     return -dice_coef(y_true, y_pred)
+
+#TODO should it be deprecated?
+def save_keras_model(model, name):
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    model_path = os.path.join(cur_path, 'weights', name)
+    model.save(model_path)
+
+
+def load_keras_model(name):
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    model_path = os.path.join(cur_path, 'weights', name)
+    return keras.models.load_model(model_path, custom_objects={'dice_coef_loss': dice_coef_loss, 'dice_coef': dice_coef})
 
 

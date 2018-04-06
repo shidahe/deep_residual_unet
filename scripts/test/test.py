@@ -22,15 +22,16 @@ def test():
     # TODO: more advanced chechpoint configuration
 
     ######################## TODO here should be tf of keras model
-    # build model
-    model = build(cfg.model.parameters)
-    # print model summary
-    model.summary()
-    # define optimizer
-    optimizer = configure_optimizer(cfg.optimizer)
-    # compile model
-    model.compile(optimizer=optimizer, loss=dice_coef_loss, metrics=[dice_coef])
+    # # build model
+    # model = build(cfg.model.parameters)
+    # # print model summary
+    # model.summary()
+    # # define optimizer
+    # optimizer = configure_optimizer(cfg.optimizer)
+    # # compile model
+    # model.compile(optimizer=optimizer, loss=dice_coef_loss, metrics=[dice_coef])
 
+    model = load_keras_model(cfg.model.nameh5)
     # set augmentation
     train_aug = configure_augmentation(cfg.augmentation)
     train_generator = configure_dataset(cfg.dataset, train_aug)
