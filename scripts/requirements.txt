@@ -2,3 +2,7 @@ Keras==2.1.2
 numpy==1.11.0
 easydict==1.7
 PyYAML==3.12
+tensorflow-gpu
+h5py
+Cython
+opencv-python

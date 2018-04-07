@@ -20,8 +20,6 @@ if pil_image is not None:
     if hasattr(pil_image, 'LANCZOS'):
         _PIL_INTERPOLATION_METHODS['lanczos'] = pil_image.LANCZOS
 
-cur_path = os.path.abspath(os.path.dirname(__file__))
-model_path = os.path.join(cur_path, '..', 'models', 'resnet50_pascal_05.pb')
 
 def prepare_points_xy(points_raw):
     points = []
@@ -134,7 +132,6 @@ class LabelBoxXYIterator(Iterator):
                 resample = _PIL_INTERPOLATION_METHODS[interpolation]
                 img = img.resize(width_height_tuple, resample)
         return img, original_size
-
 
     def next(self):
         """For python 2.x.

@@ -25,7 +25,7 @@ def train():
 
     # configure callbacks
 
-    # TODO: more advanced chechpoint configuration
+    # TODO: more advanced checkpoint configuration
 
     tensorboard = TensorBoard(log_dir=os.path.join(model_output_folder_path, "logs"))
     model_checkpoint = ModelCheckpoint(os.path.join("..", "output", model_filename), monitor='loss',
