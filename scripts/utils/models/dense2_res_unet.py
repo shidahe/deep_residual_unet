@@ -82,7 +82,7 @@ def decoder(x, from_encoder):
     return main_path
 
 
-def build_res_unet(input_shape):
+def build(input_shape):
     inputs = Input(shape=input_shape)
 
     to_decoder = encoder(inputs)
