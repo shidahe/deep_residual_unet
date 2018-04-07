@@ -52,18 +52,12 @@ RUN apt-get update && \
         build-essential software-properties-common \
         cmake git wget curl unzip rsync\
         python3 python3-dev python3-setuptools python3-pip python3-wheel\
-        dbus\
+        dbus libice6 libsm6 libxt6 libxrender1 libfontconfig1 libcups2 libxext6\
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+    
+RUN pip3 install -r requirements.txt	
 
 WORKDIR /scripts
 COPY ./scripts /scripts/
-
-RUN pip3 install -r requirements.txt
-
-RUN apt-get update && \
-	apt-get install -y --no-install-recommends \
-	libice6 libsm6 libxt6 libxrender1 libfontconfig1 libcups2 libxext6
-
-
