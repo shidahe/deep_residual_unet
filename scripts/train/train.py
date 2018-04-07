@@ -12,6 +12,7 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 from utils.models.res_unet import *
 from utils.utils import *
 
+cur_path = os.path.abspath(__name__)
 
 def train():
     cfg = EasyDict(yaml.load(open('train.cfg')))
@@ -20,7 +21,7 @@ def train():
 
     # create output folder structure
     # TODO: create more advanced folder structure divided by model name, dataset and so on
-    model_output_folder_path = os.path.join("..", "output", datetime.today().strftime("result_%d-%m-%y:%H.%M.%S"))
+    model_output_folder_path = os.path.join(cur_path, "..", "output", datetime.today().strftime("result_%d-%m-%y:%H.%M.%S"))
     os.makedirs(model_output_folder_path)
 
     # configure callbacks
@@ -28,7 +29,7 @@ def train():
     # TODO: more advanced checkpoint configuration
 
     tensorboard = TensorBoard(log_dir=os.path.join(model_output_folder_path, "logs"))
-    model_checkpoint = ModelCheckpoint(os.path.join("..", "output", model_filename), monitor='loss',
+    model_checkpoint = ModelCheckpoint(os.path.join(cur_path, "..", "output", model_filename), monitor='loss',
                                        save_best_only=True, verbose=True)
 
     # build model
