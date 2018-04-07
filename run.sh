@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-docker run -it --name deep_train deep_train
+docker run --runtime=nvidia --rm -it --name deep_train deep_train
