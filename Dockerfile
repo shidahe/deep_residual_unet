@@ -61,3 +61,9 @@ WORKDIR /scripts
 COPY ./scripts /scripts/
 
 RUN pip3 install -r requirements.txt
+
+RUN apt-get update && \
+	apt-get install -y --no-install-recommends \
+	libice6 libsm6 libxt6 libxrender1 libfontconfig1 libcups2 libxext6
+
+
