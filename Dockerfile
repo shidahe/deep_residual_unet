@@ -51,7 +51,7 @@ RUN apt-get update && \
 	apt-get install -y --no-install-recommends \
         build-essential software-properties-common \
         cmake git wget curl unzip rsync\
-        python python-dev python-setuptools python-pip python-wheel\
+        python3 python3-dev python3-setuptools python3-pip python3-wheel\
         dbus\
         && \
     apt-get clean && \
@@ -60,4 +60,4 @@ RUN apt-get update && \
 WORKDIR /scripts
 COPY ./scripts /scripts/
 
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
