@@ -12,16 +12,17 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 from utils.models.res_unet import *
 from utils.utils import *
 
-cur_path = os.path.abspath(__name__)
+cur_path = os.path.abspath(os.path.dirname(__file__))
+
 
 def train():
     cfg = EasyDict(yaml.load(open('train.cfg')))
     model_filename = "{model_name}-{dataset_name}".format(model_name=cfg.model.name, dataset_name=cfg.dataset) + \
-                     "-{epoch:02d}-{val_acc:.4f}.hdf5"
+                     "-{epoch:02d}-{loss:.4f}.hdf5"
 
     # create output folder structure
     # TODO: create more advanced folder structure divided by model name, dataset and so on
-    model_output_folder_path = os.path.join(cur_path, "..", "output", datetime.today().strftime("result_%d-%m-%y:%H.%M.%S"))
+    model_output_folder_path = os.path.join(cur_path, "..", "output", datetime.today().strftime("result_%d-%m-%y_%H.%M.%S"))
     os.makedirs(model_output_folder_path)
 
     # configure callbacks

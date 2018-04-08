@@ -52,8 +52,8 @@ RUN apt-get update && \
         build-essential software-properties-common \
         cmake git wget curl unzip rsync\
         python3 python3-dev python3-setuptools python3-pip python3-wheel\
-        dbus libice6 libsm6 libxt6 libxrender1 libfontconfig1 libcups2 libxext6\
-        && \
+        dbus libice6 libsm6 libxt6 libxrender1 libfontconfig1 libcups2 libxext6 \
+        nano && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
    	
