@@ -17,7 +17,7 @@ cur_path = os.path.abspath(os.path.dirname(__file__))
 
 def train():
     cfg = EasyDict(yaml.load(open('train.cfg')))
-    model_filename = "{model_name}-{dataset_name}".format(model_name=cfg.model.name, dataset_name=cfg.dataset) + \
+    model_filename = "{model_name}-{dataset_name}".format(model_name=cfg.model.name, dataset_name=cfg.dataset.folder_name) + \
                      "-{epoch:02d}-{loss:.4f}.hdf5"
 
     # create output folder structure
