@@ -30,7 +30,7 @@ def train():
     # TODO: more advanced checkpoint configuration
 
     tensorboard = TensorBoard(log_dir=os.path.join(model_output_folder_path, "logs"))
-    model_checkpoint = ModelCheckpoint(os.path.join(cur_path, "..", "output", model_filename), monitor='loss',
+    model_checkpoint = ModelCheckpoint(os.path.join(model_output_folder_path, model_filename), monitor='loss',
                                        save_best_only=True, verbose=True)
 
     # build model
