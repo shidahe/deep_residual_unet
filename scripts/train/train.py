@@ -30,7 +30,7 @@ def train():
     # TODO: more advanced checkpoint configuration
 
     tensorboard = TensorBoard(log_dir=os.path.join(model_output_folder_path, "logs"))
-    model_checkpoint = ModelCheckpoint(os.path.join(model_output_folder_path, model_filename), monitor='loss',
+    model_checkpoint = ModelCheckpoint(os.path.join(model_output_folder_path, model_filename), monitor='val_loss',
                                        save_best_only=True, verbose=True)
 
     # build model
@@ -46,9 +46,11 @@ def train():
     # set augmentation
     train_aug = configure_augmentation(cfg.augmentation)
     train_generator = configure_dataset(cfg.dataset, train_aug)
+    val_generator = configure_dataset(cfg.dataset, None)
 
     model.fit_generator(train_generator, steps_per_epoch=cfg.steps_per_epoch,
-                        epochs=cfg.num_epochs,
+                        epochs=cfg.num_epochs, validation_data=val_generator,
+                        validation_steps=250,
                         callbacks=[tensorboard, model_checkpoint]
                         )
 

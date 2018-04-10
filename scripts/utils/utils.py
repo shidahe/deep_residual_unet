@@ -13,23 +13,7 @@ def configure_augmentation(cfg):
     :param cfg: augmentation fields of configuration
     :return: ImageDataGenerator
     """
-    return ImageDataGenerator(featurewise_center=cfg.featurewise_center,
-                              samplewise_center=cfg.samplewise_center,
-                              featurewise_std_normalization=cfg.featurewise_std_normalization,
-                              samplewise_std_normalization=cfg.samplewise_std_normalization,
-                              zca_whitening=cfg.zca_whitening,
-                              zca_epsilon=cfg.zca_epsilon,
-                              rotation_range=cfg.rotation_range,
-                              width_shift_range=cfg.width_shift_range,
-                              height_shift_range=cfg.height_shift_range,
-                              shear_range=cfg.shear_range,
-                              zoom_range=cfg.zoom_range,
-                              channel_shift_range=cfg.channel_shift_range,
-                              fill_mode=cfg.fill_mode,
-                              cval=cfg.cval,
-                              horizontal_flip=cfg.horizontal_flip,
-                              vertical_flip=cfg.vertical_flip,
-                              rescale=cfg.rescale)
+    return ImageDataGenerator(**cfg)
 
 
 def configure_optimizer(cfg):
