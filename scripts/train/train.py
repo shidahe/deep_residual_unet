@@ -1,6 +1,5 @@
 import _init_path_
 
-
 from datetime import datetime
 from easydict import EasyDict
 
@@ -9,7 +8,7 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 # TODO: assign model import to overall approach
 
 
-from utils.models.unet import *
+from utils.models.res_unet import *
 from utils.utils import *
 
 cur_path = os.path.abspath(os.path.dirname(__file__))

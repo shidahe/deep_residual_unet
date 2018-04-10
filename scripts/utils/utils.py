@@ -34,7 +34,8 @@ def configure_dataset(cfg, augm):
 
     if cfg.iterator.name in keras_iterators:
         try:
-            return eval("{}(image_data_generator=augm, **{})".format(cfg.name, cfg.parameters))
+            iterator = importlib.import_module("utils.iterators.{}".format(cfg.iterator.name))
+            return eval("{}(image_data_generator=augm, **{})".format(cfg.iterator.name, cfg.iterator.parameters))
         except TypeError as ex:
             print("Error during configuring optimizer: {}".format(ex))
             raise
