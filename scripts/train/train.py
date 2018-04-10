@@ -9,7 +9,7 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 # TODO: assign model import to overall approach
 
 
-from utils.models.res_unet import *
+from utils.models.unet import *
 from utils.utils import *
 
 cur_path = os.path.abspath(os.path.dirname(__file__))
@@ -18,7 +18,7 @@ cur_path = os.path.abspath(os.path.dirname(__file__))
 def train():
     cfg = EasyDict(yaml.load(open('train.cfg')))
     model_filename = "{model_name}-{dataset_name}".format(model_name=cfg.model.name, dataset_name=cfg.dataset.folder_name) + \
-                     "-{epoch:02d}-{loss:.4f}.hdf5"
+                     "-{epoch:02d}-{loss:.4f}.h5py"
 
     # create output folder structure
     # TODO: create more advanced folder structure divided by model name, dataset and so on
