@@ -20,14 +20,14 @@ ENV CUDA_PKG_VERSION 9-0=$CUDA_VERSION-1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         cuda-cudart-$CUDA_PKG_VERSION \
-	cuda-libraries-$CUDA_PKG_VERSION \
+	    cuda-libraries-$CUDA_PKG_VERSION \
         libnccl2=$NCCL_VERSION-1+cuda9.0 \
         cuda-libraries-dev-$CUDA_PKG_VERSION \
         cuda-nvml-dev-$CUDA_PKG_VERSION \
         cuda-minimal-build-$CUDA_PKG_VERSION \
         cuda-command-line-tools-$CUDA_PKG_VERSION \
         libnccl-dev=$NCCL_VERSION-1+cuda9.0 \
-	libcudnn7=$CUDNN_VERSION-1+cuda9.0 \
+	    libcudnn7=$CUDNN_VERSION-1+cuda9.0 \
         libcudnn7-dev=$CUDNN_VERSION-1+cuda9.0 && \
     ln -s cuda-9.0 /usr/local/cuda && \
     rm -rf /var/lib/apt/lists/*
@@ -56,8 +56,12 @@ RUN apt-get update && \
         nano && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-   	
+
 WORKDIR /scripts
+
+COPY ./requirements.txt /scripts/
+RUN pip3 install -r requirements.txt
+
 COPY ./scripts /scripts/
 
-RUN pip3 install -r requirements.txt
+

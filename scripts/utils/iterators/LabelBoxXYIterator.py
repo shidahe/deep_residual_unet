@@ -1,6 +1,5 @@
 import json
 
-from keras.optimizers import *
 from keras.preprocessing.image import *
 import numpy as np
 import cv2
@@ -19,9 +18,6 @@ if pil_image is not None:
     # This method is new in version 1.1.3 (2013).
     if hasattr(pil_image, 'LANCZOS'):
         _PIL_INTERPOLATION_METHODS['lanczos'] = pil_image.LANCZOS
-
-cur_path = os.path.abspath(os.path.dirname(__file__))
-model_path = os.path.join(cur_path, '..', 'models', 'resnet50_pascal_05.pb')
 
 
 def prepare_points_xy(points_raw):
@@ -49,7 +45,7 @@ def prepare_points_xy(points_raw):
 class LabelBoxXYIterator(Iterator):
 
     def __init__(self, load_dir=None, image_data_generator=None,
-                 image_shape=(256, 256),
+                 image_shape=(300, 300),
                  color_mode='colorful',
                  interpolation='nearest',
                  class_mode='binary',
@@ -98,7 +94,8 @@ class LabelBoxXYIterator(Iterator):
         shuffle = shuffle
         super(LabelBoxXYIterator, self).__init__(self.samples, batch_size, shuffle, seed)
 
-    def load_img(self, path, grayscale=False, target_size=None,
+    @staticmethod
+    def load_img(path, grayscale=False, target_size=None,
                  interpolation='nearest'):
         """Loads an image into PIL format.
 
@@ -164,13 +161,12 @@ class LabelBoxXYIterator(Iterator):
         grayscale = self.color_mode == 'grayscale'
         # build batch of image data
         original_shapes = []
-
         for i, j in enumerate(index_array):
             fpath = self.filenames[j]
             img, original_shape = self.load_img(fpath,
-                                                grayscale=grayscale,
-                                                target_size=self.image_shape,
-                                                interpolation=self.interpolation)
+                           grayscale=grayscale,
+                           target_size=self.image_shape,
+                           interpolation=self.interpolation)
             original_shapes.append(original_shape)
             x = img_to_array(img, data_format=self.data_format)
             batch_x.append(x)
@@ -180,8 +176,6 @@ class LabelBoxXYIterator(Iterator):
             if self.image_data_generator:
                 txy = self.image_data_generator.random_transform(np.append(batch_x[k], batch_y[k], axis=2))
                 batch_y[k] = txy[:, :, 3, None]
-                #TODO: hardcoded rescale NONE
-                self.image_data_generator.rescale = None
                 batch_x[k] = self.image_data_generator.standardize(txy[:, :, :3])
 
         # optionally save augmented images to disk for debugging purposes
@@ -233,6 +227,5 @@ class LabelBoxXYIterator(Iterator):
                     flag = False
             new_x.append(cropped_img)
             new_y.append(cropped_mask)
-
 
         return np.array(new_x), np.array(new_y)

@@ -3,7 +3,11 @@ import yaml
 
 from keras.optimizers import *
 from keras.preprocessing.image import *
-import keras
+import keras.applications
+
+keras_iterators = [item.__name__ for item in Iterator.__subclasses__()]
+keras_optimizers = [item.__name__ for item in Optimizer.__subclasses__()]
+
 smooth = 1.
 
 
@@ -17,25 +21,23 @@ def configure_augmentation(cfg):
 
 
 def configure_optimizer(cfg):
-    keras_optimizers = [item.__name__ for item in Optimizer.__subclasses__()]
+
     if cfg.name in keras_optimizers:
         try:
             return eval("{}(**{})".format(cfg.name, cfg.parameters))
         except TypeError as ex:
             print("Error during configuring optimizer: {}".format(ex))
-            exit(-1)
+            raise ex
     else:
         print("No such optimizer, please refer to keras docs: http://keras.io/")
         exit(-1)
 
 
-def configure_dataset(cfg, augm):
-    keras_iterators = [item.__name__ for item in Iterator.__subclasses__()]
+def configure_generator(cfg, augm):
 
     if cfg.iterator.name in keras_iterators:
         try:
-            iterator = importlib.import_module("utils.iterators.{}".format(cfg.iterator.name))
-            return eval("iterator.{}(image_data_generator=augm, **{})".format(cfg.iterator.name, cfg.iterator.parameters))
+            return eval("{}(image_data_generator=augm, **{})".format(cfg.iterator.name, cfg.iterator.parameters))
         except TypeError as ex:
             print("Error during configuring optimizer: {}".format(ex))
             raise
@@ -49,6 +51,15 @@ def configure_dataset(cfg, augm):
             raise
 
 
+def configure_model(model_cfg):
+    try:
+        model_lib = importlib.import_module("utils.models.{}".format(model_cfg.name))
+        return eval("model_lib.build({})".format(model_cfg.parameters))
+    except ImportError as ex:
+        print("Unknown model: {}".format(ex))
+        raise
+
+
 def dump_cfg(filepath, cfg):
     with open(filepath, "w+") as f:
         yaml.dump(dict(cfg), f, default_flow_style=False)
@@ -58,7 +69,7 @@ def dice_coef(y_true, y_pred):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
     intersection = K.sum(y_true_f * y_pred_f)
-    diff = K.sum(y_pred_f - y_true_f)
+    diff = 0.5 * K.sum(y_pred_f - y_true_f)
     return (2. * intersection - diff + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
 

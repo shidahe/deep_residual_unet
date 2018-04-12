@@ -2,6 +2,7 @@ from keras.models import *
 from keras.layers import Input, Conv2D, UpSampling2D, BatchNormalization, Activation, add, concatenate
 from keras.regularizers import l2
 
+
 def res_block(x, nb_filters, strides):
     res_path = BatchNormalization()(x)
     res_path = Activation(activation='relu')(res_path)
@@ -59,8 +60,7 @@ def decoder(x, from_encoder):
 
 
 def build(cfg):
-
-    inputs = Input(shape=cfg.input_size)
+    inputs = Input(shape=cfg['input_size'])
 
     to_decoder = encoder(inputs)
 
@@ -71,14 +71,3 @@ def build(cfg):
     path = Conv2D(filters=1, kernel_size=(1, 1), activation='sigmoid', kernel_regularizer=l2(1e-4))(path)
 
     return Model(input=inputs, output=path)
-
-
-# TODO: Implement class ro ResUnet construction
-class ResUnet(object):
-    def __init__(self, input_size):
-        self.input = Input(shape=input_size)
-        self.path = None
-        pass
-
-    def build(self):
-        return Model(input=self.input, output=1)

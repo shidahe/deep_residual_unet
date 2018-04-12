@@ -1,5 +1,5 @@
 easydict==1.7
-numpy==1.11.0
+numpy
 Keras==2.1.2
 PyYAML==3.12
 tensorflow-gpu
@@ -7,3 +7,5 @@ h5py
 Cython
 opencv-python
 Pillow
+
+
