@@ -1,6 +1,6 @@
 from keras.models import *
 from keras.layers import Input, Conv2D, UpSampling2D, BatchNormalization, Activation, add, concatenate
-
+from keras.regularizers import l2
 
 def res_block(x, nb_filters, strides):
     res_path = BatchNormalization()(x)
@@ -20,13 +20,13 @@ def res_block(x, nb_filters, strides):
 def encoder(x):
     to_decoder = []
 
-    main_path = Conv2D(filters=64, kernel_size=(3, 3), padding='same', strides=(1, 1))(x)
+    main_path = Conv2D(filters=64, kernel_size=(3, 3), padding='same', strides=(1, 1), kernel_regularizer=l2(1e-4))(x)
     main_path = BatchNormalization()(main_path)
     main_path = Activation(activation='relu')(main_path)
 
-    main_path = Conv2D(filters=64, kernel_size=(3, 3), padding='same', strides=(1, 1))(main_path)
+    main_path = Conv2D(filters=64, kernel_size=(3, 3), padding='same', strides=(1, 1), kernel_regularizer=l2(1e-4))(main_path)
 
-    shortcut = Conv2D(filters=64, kernel_size=(1, 1), strides=(1, 1))(x)
+    shortcut = Conv2D(filters=64, kernel_size=(1, 1), strides=(1, 1), kernel_regularizer=l2(1e-4))(x)
     shortcut = BatchNormalization()(shortcut)
 
     main_path = add([shortcut, main_path])
@@ -68,6 +68,17 @@ def build(cfg):
 
     path = decoder(path, from_encoder=to_decoder)
 
-    path = Conv2D(filters=1, kernel_size=(1, 1), activation='sigmoid')(path)
+    path = Conv2D(filters=1, kernel_size=(1, 1), activation='sigmoid', kernel_regularizer=l2(1e-4))(path)
 
     return Model(input=inputs, output=path)
+
+
+# TODO: Implement class ro ResUnet construction
+class ResUnet(object):
+    def __init__(self, input_size):
+        self.input = Input(shape=input_size)
+        self.path = None
+        pass
+
+    def build(self):
+        return Model(input=self.input, output=1)
