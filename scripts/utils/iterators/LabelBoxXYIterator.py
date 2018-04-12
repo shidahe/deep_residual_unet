@@ -20,6 +20,9 @@ if pil_image is not None:
     if hasattr(pil_image, 'LANCZOS'):
         _PIL_INTERPOLATION_METHODS['lanczos'] = pil_image.LANCZOS
 
+cur_path = os.path.abspath(os.path.dirname(__file__))
+model_path = os.path.join(cur_path, '..', 'models', 'resnet50_pascal_05.pb')
+
 
 def prepare_points_xy(points_raw):
     points = []
@@ -46,15 +49,17 @@ def prepare_points_xy(points_raw):
 class LabelBoxXYIterator(Iterator):
 
     def __init__(self, load_dir=None, image_data_generator=None,
-                 image_shape=(300, 300),
+                 image_shape=(256, 256),
                  color_mode='colorful',
                  interpolation='nearest',
                  class_mode='binary',
                  shuffle=True,
                  seed=None,
                  batch_size=32,
-                 mode='train'
+                 mode='train',
+                 environment_drop=True
                  ):
+        self.environment_drop = environment_drop
         for i in os.listdir(load_dir):
             if i.endswith('.json'):
                 self.file_name = i
@@ -137,7 +142,9 @@ class LabelBoxXYIterator(Iterator):
                             interpolation,
                             ", ".join(_PIL_INTERPOLATION_METHODS.keys())))
                 resample = _PIL_INTERPOLATION_METHODS[interpolation]
-                img = img.resize(width_height_tuple, resample)
+                # img = img.resize(width_height_tuple, resample)
+                # TODO: here must be crop
+
         return img, original_size
 
     def next(self):
@@ -153,22 +160,30 @@ class LabelBoxXYIterator(Iterator):
         return self._get_batches_of_transformed_samples(index_array)
 
     def _get_batches_of_transformed_samples(self, index_array):
-        batch_x = np.zeros((len(index_array),) + self.image_shape + (3,), dtype=K.floatx())
+        batch_x = []  # np.zeros((len(index_array),) + self.image_shape + (3,), dtype=K.floatx())
         grayscale = self.color_mode == 'grayscale'
         # build batch of image data
         original_shapes = []
+
         for i, j in enumerate(index_array):
             fpath = self.filenames[j]
             img, original_shape = self.load_img(fpath,
-                           grayscale=grayscale,
-                           target_size=self.image_shape,
-                           interpolation=self.interpolation)
+                                                grayscale=grayscale,
+                                                target_size=self.image_shape,
+                                                interpolation=self.interpolation)
             original_shapes.append(original_shape)
             x = img_to_array(img, data_format=self.data_format)
-            # if self.image_data_generator:
-            #     x = self.image_data_generator.random_transform(x)
-            #     x = self.image_data_generator.standardize(x)
-            batch_x[i] = x
+            batch_x.append(x)
+
+        batch_y = self.build_mask(index_array, original_shapes)
+        for k in range(len(batch_y)):
+            if self.image_data_generator:
+                txy = self.image_data_generator.random_transform(np.append(batch_x[k], batch_y[k], axis=2))
+                batch_y[k] = txy[:, :, 3, None]
+                #TODO: hardcoded rescale NONE
+                self.image_data_generator.rescale = None
+                batch_x[k] = self.image_data_generator.standardize(txy[:, :, :3])
+
         # optionally save augmented images to disk for debugging purposes
         if self.save_to_dir:
             for i, j in enumerate(index_array):
@@ -178,11 +193,10 @@ class LabelBoxXYIterator(Iterator):
                                                                   hash=np.random.randint(int(1e7)),
                                                                   format=self.save_format)
                 img.save(os.path.join(self.save_to_dir, fname))
-        # build batch of labels
 
-        batch_y = self.build_mask(index_array, original_shapes).astype(K.floatx())
-
-        return batch_x, batch_y
+        x, y = self.crop(batch_x, batch_y)
+        # print('batch_shapes', x.shape, y.shape)
+        return x, y
 
     def build_mask(self, index_array, original_shapes):
         masks = [np.zeros(shape[::-1], dtype='float32') for shape in original_shapes]
@@ -191,6 +205,34 @@ class LabelBoxXYIterator(Iterator):
             for polygon in self.points[ind]['Core']:
                 x = polygon['x']
                 y = polygon['y']
-                # normalize
-                cv2.fillPoly(masks[k], [np.array(list(zip(x, y)))], 1)
-        return np.array([cv2.resize(mask[::-1], self.image_shape) for mask in masks])[:,:,:, None]
+                cv2.fillPoly(masks[k], [np.array([x, y]).T], 1)
+            masks[k] = np.expand_dims(masks[k], 2).astype(K.floatx())
+        return masks
+
+    def crop(self, x, y):
+        hx, hy = self.image_shape
+
+        new_x, new_y = [], []
+        for k, mask in enumerate(y):
+            flag = True
+
+            if x[k].shape[0] < self.image_shape[0] or x[k].shape[1] < self.image_shape[1]:
+                cropped_img = cv2.resize(x[k], self.image_shape)
+                cropped_mask = np.expand_dims(cv2.resize(mask, self.image_shape), 2)
+                flag = False
+            while flag:
+                x_ind = np.random.randint(0, x[k].shape[0] - hx)
+                y_ind = np.random.randint(0, x[k].shape[1] - hy)
+                cropped_mask = mask[x_ind: x_ind + hx, y_ind: y_ind + hy]
+
+                if self.environment_drop and cropped_mask.mean() > 5.0 / (hx * hy):
+                    cropped_img = x[k][x_ind: x_ind + hx, y_ind: y_ind + hy]
+                    flag = False
+                elif not self.environment_drop:
+                    cropped_img = x[k][x_ind: x_ind + hx, y_ind: y_ind + hy]
+                    flag = False
+            new_x.append(cropped_img)
+            new_y.append(cropped_mask)
+
+
+        return np.array(new_x), np.array(new_y)
