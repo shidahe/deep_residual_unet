@@ -23,7 +23,7 @@ if pil_image is not None:
 
 def prepare_points_xy(points_raw):
     points = []
-    for j in points_raw:
+    for num, j in enumerate(points_raw):
         if j != 'Skip':
             res = {}
             for key in j:
@@ -76,8 +76,12 @@ class LabelBoxXYIterator(Iterator):
             mode_list = [i.replace('\n', '') for i in f.readlines()]
 
         path = os.path.join(self.dataset_folder, "JPEGImages")
-        self.filenames = [os.path.join(path, i['External ID']) for i in self.data if i['External ID'] in mode_list]
-        self.points = prepare_points_xy([i['Label'] for i in self.data if i['External ID'] in mode_list])
+
+
+        self.points = prepare_points_xy([i['Label']
+                                         for i in self.data if i['External ID'] in mode_list and i['Label'] != 'Skip'])
+        self.filenames = [os.path.join(path, i['External ID'])
+                          for i in self.data if i['External ID'] in mode_list and i['Label'] != 'Skip']
 
         self.image_shape = tuple(image_shape)
         self.color_mode = color_mode
@@ -185,6 +189,7 @@ class LabelBoxXYIterator(Iterator):
         masks = [np.zeros(shape[::-1], dtype='float32') for shape in original_shapes]
         for k, ind in enumerate(index_array):
             # TODO: hardcoded class name CORE
+            print(k, ind, len(self.points), self.imageset_file)
             for polygon in self.points[ind]['Core']:
                 x = polygon['x']
                 y = polygon['y']
