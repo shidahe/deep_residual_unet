@@ -53,14 +53,14 @@ class LabelBoxXYIterator(Iterator):
                  shuffle=True,
                  seed=None,
                  batch_size=32,
-                 environment_drop=True
+                 skip_without_mask=True
                  ):
         if dataset_name is None:
             raise FileNotFoundError("Specify dataset name")
 
         self.dataset_folder = os.path.join(cur_path, "..", "..", "dataset", dataset_name)
 
-        self.environment_drop = environment_drop
+        self.skip_without_mask = skip_without_mask
         for i in os.listdir(self.dataset_folder):
             if i.endswith('.json'):
                 self.file_name = i
@@ -92,8 +92,7 @@ class LabelBoxXYIterator(Iterator):
         self.samples = len(self.filenames)
         super(LabelBoxXYIterator, self).__init__(self.samples, batch_size, shuffle, seed)
 
-    @staticmethod
-    def load_img(path, grayscale=False, target_size=None,
+    def load_img(self, path, grayscale=False, target_size=None,
                  interpolation='nearest'):
         """Loads an image into PIL format.
 
@@ -137,8 +136,8 @@ class LabelBoxXYIterator(Iterator):
                             interpolation,
                             ", ".join(_PIL_INTERPOLATION_METHODS.keys())))
                 resample = _PIL_INTERPOLATION_METHODS[interpolation]
-                # img = img.resize(width_height_tuple, resample)
-                # TODO: here must be crop
+                if self.skip_without_mask is None:
+                    img = img.resize(width_height_tuple, resample)
 
         return img, original_size
 
@@ -155,16 +154,16 @@ class LabelBoxXYIterator(Iterator):
         return self._get_batches_of_transformed_samples(index_array)
 
     def _get_batches_of_transformed_samples(self, index_array):
-        batch_x = []  # np.zeros((len(index_array),) + self.image_shape + (3,), dtype=K.floatx())
+        batch_x = []
         grayscale = self.color_mode == 'grayscale'
-        # build batch of image data
         original_shapes = []
+
         for i, j in enumerate(index_array):
             fpath = self.filenames[j]
             img, original_shape = self.load_img(fpath,
-                           grayscale=grayscale,
-                           target_size=self.image_shape,
-                           interpolation=self.interpolation)
+                                                grayscale=grayscale,
+                                                target_size=self.image_shape,
+                                                interpolation=self.interpolation)
             original_shapes.append(original_shape)
             x = img_to_array(img, data_format=self.data_format)
             batch_x.append(x)
@@ -176,8 +175,11 @@ class LabelBoxXYIterator(Iterator):
                 batch_y[k] = txy[:, :, 3, None]
                 batch_x[k] = self.image_data_generator.standardize(txy[:, :, :3])
 
-        x, y = self.crop(batch_x, batch_y)
-        return x, y
+        if self.skip_without_mask is not None:
+            x, y = self.crop(batch_x, batch_y)
+            return np.array(x), np.array(y)
+        else:
+            return np.array(batch_x), np.array(batch_y)
 
     def build_mask(self, index_array, original_shapes):
         masks = [np.zeros(shape[::-1], dtype='float32') for shape in original_shapes]
@@ -187,7 +189,12 @@ class LabelBoxXYIterator(Iterator):
                 x = polygon['x']
                 y = polygon['y']
                 cv2.fillPoly(masks[k], [np.array([x, y]).T], 1)
-            masks[k] = np.expand_dims(masks[k], axis=2).astype(K.floatx())
+            masks[k] = masks[k][::-1, :]
+            if self.skip_without_mask is None:
+                masks[k] = cv2.resize(masks[k], self.image_shape)
+
+        for k, ind in enumerate(index_array):
+            masks[k] = np.expand_dims(masks[k], 2).astype(K.floatx())
         return masks
 
     def crop(self, x, y):
@@ -206,10 +213,10 @@ class LabelBoxXYIterator(Iterator):
                 y_ind = np.random.randint(0, x[k].shape[1] - hy)
                 cropped_mask = mask[x_ind: x_ind + hx, y_ind: y_ind + hy]
 
-                if self.environment_drop and cropped_mask.mean() > 5.0 / (hx * hy):
+                if self.skip_without_mask and cropped_mask.mean() > 5.0 / (hx * hy):
                     cropped_img = x[k][x_ind: x_ind + hx, y_ind: y_ind + hy]
                     flag = False
-                elif not self.environment_drop:
+                elif not self.skip_without_mask:
                     cropped_img = x[k][x_ind: x_ind + hx, y_ind: y_ind + hy]
                     flag = False
             new_x.append(cropped_img)

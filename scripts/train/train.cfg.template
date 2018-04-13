@@ -12,6 +12,7 @@ dataset:
             imageset_file: "train"
             batch_size: 1
             image_shape: [256, 256]
+            skip_without_mask: null
         steps_per_epoch: 289
 
     validation:
@@ -20,6 +21,7 @@ dataset:
             imageset_file: "test"
             batch_size: 1
             image_shape: [256, 256]
+            skip_without_mask: null
         steps_per_epoch: 289
 
     augmentation:
