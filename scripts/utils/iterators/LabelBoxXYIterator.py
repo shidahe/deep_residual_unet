@@ -189,7 +189,6 @@ class LabelBoxXYIterator(Iterator):
         masks = [np.zeros(shape[::-1], dtype='float32') for shape in original_shapes]
         for k, ind in enumerate(index_array):
             # TODO: hardcoded class name CORE
-            print(k, ind, len(self.points), self.imageset_file)
             for polygon in self.points[ind]['Core']:
                 x = polygon['x']
                 y = polygon['y']
