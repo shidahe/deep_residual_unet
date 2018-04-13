@@ -1,8 +1,9 @@
 import json
 
-from keras.preprocessing.image import *
-import numpy as np
 import cv2
+from keras.preprocessing.image import *
+
+cur_path = os.path.abspath(os.path.dirname(__file__))
 
 if pil_image is not None:
     _PIL_INTERPOLATION_METHODS = {
@@ -44,36 +45,38 @@ def prepare_points_xy(points_raw):
 
 class LabelBoxXYIterator(Iterator):
 
-    def __init__(self, load_dir=None, image_data_generator=None,
+    def __init__(self, dataset_name=None, image_data_generator=None,
+                 imageset_file='train',
                  image_shape=(300, 300),
                  color_mode='colorful',
                  interpolation='nearest',
-                 class_mode='binary',
                  shuffle=True,
                  seed=None,
                  batch_size=32,
-                 mode='train',
                  environment_drop=True
                  ):
+        if dataset_name is None:
+            raise FileNotFoundError("Specify dataset name")
+
+        self.dataset_folder = os.path.join(cur_path, "..", "..", "dataset", dataset_name)
+
         self.environment_drop = environment_drop
-        for i in os.listdir(load_dir):
+        for i in os.listdir(self.dataset_folder):
             if i.endswith('.json'):
                 self.file_name = i
         if not self.file_name:
             raise Exception('json file not found')
 
-        with open(load_dir + '/' + self.file_name) as f:
+        with open(os.path.join(self.dataset_folder, self.file_name)) as f:
             self.data = json.load(f)
 
-        if mode == 'train':
-            mode_file_name = 'train.txt'
-        else:
-            mode_file_name = 'test.txt'
-        with open(os.path.join(load_dir, 'ImageSets', mode_file_name), 'r') as f:
+        self.imageset_file = imageset_file + '.txt'
+
+        with open(os.path.join(self.dataset_folder, 'ImageSets', self.imageset_file), 'r') as f:
             mode_list = [i.replace('\n', '') for i in f.readlines()]
 
-        path = load_dir + '/JPEGImages/'
-        self.filenames = [path + i['External ID'] for i in self.data if i['External ID'] in mode_list]
+        path = os.path.join(self.dataset_folder, "JPEGImages")
+        self.filenames = [os.path.join(path, i['External ID']) for i in self.data if i['External ID'] in mode_list]
         self.points = prepare_points_xy([i['Label'] for i in self.data if i['External ID'] in mode_list])
 
         self.image_shape = tuple(image_shape)
@@ -85,13 +88,8 @@ class LabelBoxXYIterator(Iterator):
             self.image_data_generator = image_data_generator
         else:
             self.image_data_generator = None
-        self.save_to_dir = None
-        self.save_prefix = None
-        self.save_format = None
-        self.class_mode = class_mode
 
         self.samples = len(self.filenames)
-        shuffle = shuffle
         super(LabelBoxXYIterator, self).__init__(self.samples, batch_size, shuffle, seed)
 
     @staticmethod
@@ -178,18 +176,7 @@ class LabelBoxXYIterator(Iterator):
                 batch_y[k] = txy[:, :, 3, None]
                 batch_x[k] = self.image_data_generator.standardize(txy[:, :, :3])
 
-        # optionally save augmented images to disk for debugging purposes
-        if self.save_to_dir:
-            for i, j in enumerate(index_array):
-                img = array_to_img(batch_x[i], self.data_format, scale=True)
-                fname = '{prefix}_{index}_{hash}.{format}'.format(prefix=self.save_prefix,
-                                                                  index=j,
-                                                                  hash=np.random.randint(int(1e7)),
-                                                                  format=self.save_format)
-                img.save(os.path.join(self.save_to_dir, fname))
-
         x, y = self.crop(batch_x, batch_y)
-        # print('batch_shapes', x.shape, y.shape)
         return x, y
 
     def build_mask(self, index_array, original_shapes):
@@ -200,7 +187,7 @@ class LabelBoxXYIterator(Iterator):
                 x = polygon['x']
                 y = polygon['y']
                 cv2.fillPoly(masks[k], [np.array([x, y]).T], 1)
-            masks[k] = np.expand_dims(masks[k], 2).astype(K.floatx())
+            masks[k] = np.expand_dims(masks[k], axis=2).astype(K.floatx())
         return masks
 
     def crop(self, x, y):

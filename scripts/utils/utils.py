@@ -1,14 +1,12 @@
+import os
 import importlib
+
 import yaml
-
+import keras
 from keras.optimizers import *
-from keras.preprocessing.image import *
-import keras.applications
+from keras.preprocessing.image import ImageDataGenerator
 
-keras_iterators = [item.__name__ for item in Iterator.__subclasses__()]
 keras_optimizers = [item.__name__ for item in Optimizer.__subclasses__()]
-
-smooth = 1.
 
 
 def configure_augmentation(cfg):
@@ -33,22 +31,15 @@ def configure_optimizer(cfg):
         exit(-1)
 
 
-def configure_generator(cfg, augm):
-
-    if cfg.iterator.name in keras_iterators:
-        try:
-            return eval("{}(image_data_generator=augm, **{})".format(cfg.iterator.name, cfg.iterator.parameters))
-        except TypeError as ex:
-            print("Error during configuring optimizer: {}".format(ex))
-            raise
-    else:
-        try:
-            iterator = importlib.import_module("utils.iterators.{}".format(cfg.iterator.name))
-            return eval(
-                "iterator.{}(image_data_generator=augm, **{})".format(cfg.iterator.name, cfg.iterator.parameters))
-        except ImportError as ex:
-            print("Unknown iterator module: {}".format(ex))
-            raise
+def configure_generator(dataset_name, cfg, augm):
+    try:
+        iterator = importlib.import_module("utils.iterators.{}".format(cfg.iterator))
+        return eval(
+            "iterator.{}(dataset_name=dataset_name, image_data_generator=augm, **{})".
+                format(cfg.iterator, cfg.parameters))
+    except ImportError as ex:
+        print("Unknown iterator module: {}".format(ex))
+        raise
 
 
 def configure_model(model_cfg):
@@ -63,6 +54,9 @@ def configure_model(model_cfg):
 def dump_cfg(filepath, cfg):
     with open(filepath, "w+") as f:
         yaml.dump(dict(cfg), f, default_flow_style=False)
+
+
+smooth = 1.
 
 
 def dice_coef(y_true, y_pred):

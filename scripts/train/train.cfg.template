@@ -1,52 +1,49 @@
 model:
-    {
-        name: "unet",
-        parameters: {
-            input_size: [256, 256, 3]
-        }
-    }
+    name: "res_unet"
+    parameters:
+        input_size: [256, 256, 3]
 
 dataset:
-    {
-        folder_name: "brewno",
-        iterator: {
-            name: "LabelBoxXYIterator",
-            parameters: {
-                load_dir: "/home/vmiroshnychenko/Desktop/DenseUnet/deep_residual_unet/scripts/dataset/brewno",
-                batch_size: 1,
-                image_shape: [256, 256],
-                mode: 'train',
-                environment_drop: True
-            }
-        }
-    }
+    name: "brewno"
 
-augmentation:
-    {
-        featurewise_center: false,
-        samplewise_center: false,
-        featurewise_std_normalization: false,
-        samplewise_std_normalization: false,
-        zca_epsilon: 1e-06,
-        zca_whitening: false,
-        rotation_range: 0.0,
-        width_shift_range: 0.0,
-        height_shift_range: 0.0,
-        shear_range: 0.0,
-        zoom_range: 0.0,
-        channel_shift_range: 0.0,
-        fill_mode: "nearest",
-        cval: 0.0,
-        horizontal_flip: false,
-        vertical_flip: false,
-        rescale: None
-    }
-steps_per_epoch: 289
+    train:
+        iterator: "LabelBoxXYIterator"
+        parameters:
+            imageset_file: "train"
+            batch_size: 1
+            image_shape: [256, 256]
+        steps_per_epoch: 289
+
+    validation:
+        iterator: "LabelBoxXYIterator"
+        parameters:
+            imageset_file: "test"
+            batch_size: 1
+            image_shape: [256, 256]
+        steps_per_epoch: 289
+
+    augmentation:
+        featurewise_center: False
+        samplewise_center: False
+        featurewise_std_normalization: False
+        samplewise_std_normalization: False
+        zca_epsilon: 1e-06
+        zca_whitening: False
+        rotation_range: 0.0
+        width_shift_range: 0.0
+        height_shift_range: 0.0
+        shear_range: 0.0
+        zoom_range: 0.0
+        channel_shift_range: 0.0
+        fill_mode: "nearest"
+        cval: 0.0
+        horizontal_flip: True
+        vertical_flip: True
+        rescale: Null
+
 optimizer:
-    {
-        name: "Adam",
-        parameters: {
-            lr: 0.00001,
-        }
-    }
+    name: "Adam"
+    parameters:
+        lr: 1.0e-5
+
 num_epochs: 15
