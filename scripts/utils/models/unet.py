@@ -3,7 +3,7 @@ from keras.layers import Input, Conv2D, MaxPooling2D, Conv2DTranspose, concatena
 
 
 def build(cfg):
-    inputs = Input(shape=cfg.input_size)
+    inputs = Input(shape=cfg['input_size'])
     conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
     conv1 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv1)
     pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
