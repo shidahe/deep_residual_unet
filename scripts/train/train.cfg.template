@@ -12,11 +12,11 @@ dataset:
         iterator: {
             name: "LabelBoxXYIterator",
             parameters: {
-                load_dir: "/home/vmiroshnychenko/Desktop/DenseUnet/deep_residual_unet/scripts/dataset/brewno",
+                load_dir: '/path/to/your/dataset',
                 batch_size: 1,
                 image_shape: [256, 256],
                 mode: 'train',
-                environment_drop: True
+                skip_without_mask: null
             }
         }
     }
@@ -39,7 +39,7 @@ augmentation:
         cval: 0.0,
         horizontal_flip: false,
         vertical_flip: false,
-        rescale: None
+        rescale: null
     }
 steps_per_epoch: 289
 optimizer:
