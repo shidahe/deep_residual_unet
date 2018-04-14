@@ -80,7 +80,7 @@ def save_keras_model(model, name):
 
 def load_keras_model(name):
     cur_path = os.path.abspath(os.path.dirname(__file__))
-    model_path = os.path.join(cur_path, 'weights', name)
+    model_path = os.path.join(cur_path, '..', 'demo', name)
     return keras.models.load_model(model_path, custom_objects={'dice_coef_loss': dice_coef_loss, 'dice_coef': dice_coef})
 
 
